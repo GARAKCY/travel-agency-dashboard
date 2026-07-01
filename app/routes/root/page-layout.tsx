@@ -4,6 +4,10 @@ import {account} from "~/appwrite/client";
 import RootNavbar from "../../../components/RootNavbar";
 
 export async function clientLoader() {
+    if (!import.meta.env.VITE_APPWRITE_PROJECT_ID) {
+        return { name: 'Guest', email: '', imageUrl: '', status: 'user' };
+    }
+
     try {
         const user = await account.get();
 

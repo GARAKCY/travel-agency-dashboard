@@ -5,7 +5,6 @@ import { TripCard } from "../../../components";
 import { getAllTrips } from "~/appwrite/trips";
 import type { Route } from "../../../.react-router/types/app/routes/admin/+types/trips";
 import { useState } from "react";
-import { getUser } from "~/appwrite/auth";
 import { PagerComponent } from "@syncfusion/ej2-react-grids";
 
 const FeaturedDestination = ({
@@ -123,25 +122,128 @@ const TestimonialCard = ({
     </div>
 );
 
+const DEMO_TRIPS: Trip[] = [
+    {
+        id: "demo-1",
+        name: "Barcelona Cultural Experience",
+        imageUrls: ["/assets/images/card-img-1.png"],
+        itinerary: [{ day: 1, location: "Barcelona, Spain", activities: [] }],
+        interests: "Culture & Art",
+        travelStyle: "City Explorer",
+        estimatedPrice: "$1,200",
+        duration: 7,
+        country: "Spain",
+        groupType: "Solo",
+        budget: "Moderate",
+        description: "Explore the vibrant streets of Barcelona with its world-class architecture, cuisine, and nightlife.",
+        bestTimeToVisit: ["April to June", "September to November"],
+        weatherInfo: ["Warm Mediterranean climate", "Avg 22°C in summer"],
+    },
+    {
+        id: "demo-2",
+        name: "London City Escape",
+        imageUrls: ["/assets/images/card-img-2.png"],
+        itinerary: [{ day: 1, location: "London, UK", activities: [] }],
+        interests: "History & Museums",
+        travelStyle: "Classic Tourist",
+        estimatedPrice: "$1,800",
+        duration: 5,
+        country: "United Kingdom",
+        groupType: "Couple",
+        budget: "Moderate",
+        description: "Discover iconic landmarks, world-class museums, and the vibrant culture of one of Europe's greatest cities.",
+        bestTimeToVisit: ["May to September"],
+        weatherInfo: ["Mild and occasionally rainy", "Avg 18°C in summer"],
+    },
+    {
+        id: "demo-3",
+        name: "Australia Adventure Tour",
+        imageUrls: ["/assets/images/card-img-3.png"],
+        itinerary: [{ day: 1, location: "Sydney, Australia", activities: [] }],
+        interests: "Adventure & Nature",
+        travelStyle: "Backpacker",
+        estimatedPrice: "$3,500",
+        duration: 14,
+        country: "Australia",
+        groupType: "Group",
+        budget: "Luxury",
+        description: "From the Sydney Opera House to the Great Barrier Reef, experience the best of Australia's natural wonders.",
+        bestTimeToVisit: ["March to May", "September to November"],
+        weatherInfo: ["Varies by region", "Tropical north, temperate south"],
+    },
+    {
+        id: "demo-4",
+        name: "Spain Golden Route",
+        imageUrls: ["/assets/images/card-img-4.png"],
+        itinerary: [{ day: 1, location: "Madrid, Spain", activities: [] }],
+        interests: "Food & Wine",
+        travelStyle: "Luxury",
+        estimatedPrice: "$2,200",
+        duration: 10,
+        country: "Spain",
+        groupType: "Couple",
+        budget: "Luxury",
+        description: "Taste the finest tapas, visit stunning cathedrals, and soak in the passionate Spanish culture from Madrid to Seville.",
+        bestTimeToVisit: ["March to May", "September to October"],
+        weatherInfo: ["Hot summers, mild winters", "Avg 25°C in summer"],
+    },
+    {
+        id: "demo-5",
+        name: "Japan Cherry Blossom Trail",
+        imageUrls: ["/assets/images/card-img-5.png"],
+        itinerary: [{ day: 1, location: "Tokyo, Japan", activities: [] }],
+        interests: "Nature & Tradition",
+        travelStyle: "Cultural Immersion",
+        estimatedPrice: "$2,800",
+        duration: 12,
+        country: "Japan",
+        groupType: "Solo",
+        budget: "Moderate",
+        description: "Follow the cherry blossom season from Tokyo to Kyoto, experiencing ancient temples, bullet trains, and exceptional food.",
+        bestTimeToVisit: ["March to April", "October to November"],
+        weatherInfo: ["Temperate climate", "Cherry blossoms in late March"],
+    },
+    {
+        id: "demo-6",
+        name: "Italy Grand Tour",
+        imageUrls: ["/assets/images/card-img-6.png"],
+        itinerary: [{ day: 1, location: "Rome, Italy", activities: [] }],
+        interests: "Art & Architecture",
+        travelStyle: "Classic",
+        estimatedPrice: "$2,500",
+        duration: 10,
+        country: "Italy",
+        groupType: "Family",
+        budget: "Moderate",
+        description: "Walk through millennia of history in Rome, drift through Venetian canals, and admire Renaissance masterpieces in Florence.",
+        bestTimeToVisit: ["April to June", "September to October"],
+        weatherInfo: ["Mediterranean climate", "Hot summers, mild winters"],
+    },
+];
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+    if (!import.meta.env.VITE_APPWRITE_PROJECT_ID) {
+        return { trips: DEMO_TRIPS, total: DEMO_TRIPS.length };
+    }
+
     const limit = 8;
     const url = new URL(request.url);
     const page = parseInt(url.searchParams.get("page") || "1", 10);
     const offset = (page - 1) * limit;
 
-    const [user, { allTrips, total }] = await Promise.all([
-        getUser(),
-        getAllTrips(limit, offset),
-    ]);
-
-    return {
-        trips: allTrips.map(({ $id, tripDetails, imageUrls }) => ({
-            id: $id,
-            ...parseTripData(tripDetails),
-            imageUrls: imageUrls ?? [],
-        })),
-        total,
-    };
+    try {
+        const { allTrips, total } = await getAllTrips(limit, offset);
+        return {
+            trips: allTrips.map(({ $id, tripDetails, imageUrls }: { $id: string; tripDetails: string; imageUrls: string[] }) => ({
+                id: $id,
+                ...parseTripData(tripDetails),
+                imageUrls: imageUrls ?? [],
+            })),
+            total,
+        };
+    } catch {
+        return { trips: DEMO_TRIPS, total: DEMO_TRIPS.length };
+    }
 };
 
 const TravelPage = ({ loaderData }: Route.ComponentProps) => {

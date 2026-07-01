@@ -1,24 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { Link, useLoaderData, useLocation, useNavigate, useParams } from "react-router";
+import { Link, useLoaderData, useNavigate } from "react-router";
 import { logoutUser } from "~/appwrite/auth";
-import { cn } from "~/lib/utils";
+
+const PlaneIcon = ({ size = 21, color = "currentColor" }: { size?: number; color?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} style={{ display: "block", flex: "none" }}>
+        <path d="M21 15.5v-2l-8-4.5V3.5a1.5 1.5 0 0 0-3 0V9l-8 4.5v2l8-2.5V17l-2 1.5V20l3.5-1 3.5 1v-1.5L13 17v-4l8 2.5z" />
+    </svg>
+);
 
 const RootNavbar = () => {
     const navigate = useNavigate();
-    const location = useLocation();
-    const params = useParams();
     const user = useLoaderData();
-
-    const [scrolled, setScrolled] = useState(false);
-
-    useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 30);
-        window.addEventListener("scroll", onScroll, { passive: true });
-        return () => window.removeEventListener("scroll", onScroll);
-    }, []);
-
-    const isDetailPage = location.pathname === `/travel/${params.tripId}`;
-    const solidNav = isDetailPage || scrolled;
 
     const handleLogout = async () => {
         await logoutUser();
@@ -26,76 +17,83 @@ const RootNavbar = () => {
     };
 
     return (
-        <nav
-            className={cn(
-                "w-full fixed z-50 transition-all duration-300",
-                solidNav
-                    ? "bg-white/95 backdrop-blur-md shadow-100 border-b border-gray-200/60"
-                    : "bg-transparent"
-            )}
-        >
-            <header className="wrapper flex justify-between items-center h-16">
-                {/* Brand */}
-                <Link to="/" className="flex items-center gap-2.5">
-                    <img
-                        src="/assets/icons/logo.svg"
-                        alt="Bay Travel logo"
-                        className={cn("size-8 transition-all duration-300", !solidNav && "brightness-200")}
-                    />
-                    <span
-                        className={cn(
-                            "text-xl font-bold transition-colors duration-300",
-                            solidNav ? "text-dark-100" : "text-white"
-                        )}
-                    >
-                        Bay Travel
-                    </span>
+        <nav style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "20px 40px",
+            background: "#fff",
+            borderBottom: "1px solid #eef2f7",
+            position: "sticky",
+            top: 0,
+            zIndex: 50,
+            fontFamily: "'Instrument Sans', system-ui, sans-serif",
+        }}>
+            {/* Left: brand + nav links */}
+            <div style={{ display: "flex", alignItems: "center", gap: 36 }}>
+                <Link to="/" style={{
+                    display: "flex", alignItems: "center", gap: 9,
+                    color: "#06c3d1",
+                    fontFamily: "'Bricolage Grotesque', sans-serif",
+                    fontWeight: 800, fontSize: 23, letterSpacing: "-0.02em",
+                    textDecoration: "none",
+                }}>
+                    <PlaneIcon color="#06c3d1" />
+                    Bay Travel
                 </Link>
 
-                {/* Right side */}
-                <div className="flex items-center gap-4">
-                    {user?.status === "admin" && (
-                        <Link
-                            to="/dashboard"
-                            className={cn(
-                                "text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200",
-                                solidNav
-                                    ? "text-dark-100 hover:text-primary-100 hover:bg-primary-50"
-                                    : "text-white/90 hover:text-white hover:bg-white/15"
-                            )}
-                        >
-                            Admin Panel
-                        </Link>
-                    )}
-
-                    <img
-                        src={user?.imageUrl || "/assets/images/david.webp"}
-                        alt={user?.name || "user"}
-                        referrerPolicy="no-referrer"
-                        className={cn(
-                            "size-9 rounded-full object-cover border-2 transition-all duration-300",
-                            solidNav ? "border-gray-200" : "border-white/40"
-                        )}
-                    />
-
-                    <button
-                        onClick={handleLogout}
-                        className={cn(
-                            "flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer",
-                            solidNav
-                                ? "text-gray-500 hover:text-dark-100 hover:bg-light-300"
-                                : "text-white/80 hover:text-white hover:bg-white/15"
-                        )}
-                    >
-                        <img
-                            src="/assets/icons/logout.svg"
-                            alt="sign out"
-                            className={cn("size-5 rotate-180 transition-all duration-300", !solidNav && "brightness-200")}
-                        />
-                        <span className="hidden md:inline">Sign out</span>
-                    </button>
+                <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+                    {[
+                        { label: "Flights", active: true },
+                        { label: "Stays", active: false },
+                        { label: "Cars", active: false },
+                        { label: "Packages", active: false },
+                        { label: "Things to do", active: false },
+                    ].map(({ label, active }) => (
+                        <span key={label} style={{
+                            color: active ? "#0f172a" : "#64748b",
+                            fontWeight: active ? 600 : 500,
+                            fontSize: 14,
+                            cursor: "pointer",
+                        }}>{label}</span>
+                    ))}
                 </div>
-            </header>
+            </div>
+
+            {/* Right: currency, support, user */}
+            <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+                <span style={{ color: "#64748b", fontWeight: 600, fontSize: 13 }}>USD $</span>
+                <span style={{ color: "#64748b", fontWeight: 500, fontSize: 14 }}>Support</span>
+
+                {user?.status === "admin" && (
+                    <Link to="/dashboard" style={{
+                        color: "#64748b", fontWeight: 500, fontSize: 14, textDecoration: "none",
+                    }}>Admin</Link>
+                )}
+
+                {user?.imageUrl && (
+                    <img
+                        src={user.imageUrl}
+                        alt={user.name || "user"}
+                        referrerPolicy="no-referrer"
+                        style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }}
+                    />
+                )}
+
+                <button onClick={handleLogout} style={{
+                    background: "#00FFEF",
+                    color: "#053b42",
+                    fontWeight: 700,
+                    fontSize: 14,
+                    padding: "9px 20px",
+                    borderRadius: 999,
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                }}>
+                    {user?.name ? "Sign out" : "Sign in"}
+                </button>
+            </div>
         </nav>
     );
 };

@@ -23,7 +23,7 @@ export async function clientLoader() {
 
 const PageLayout = () => {
     return (
-        <div className="bg-light-200">
+        <div>
             <RootNavbar />
             <Outlet />
         </div>
